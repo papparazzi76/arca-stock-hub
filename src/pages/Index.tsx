@@ -8,6 +8,7 @@ import { WarehouseStatsCard } from "@/components/WarehouseStats";
 import { PalletRegistration } from "@/components/PalletRegistration";
 import { PalletSearch } from "@/components/PalletSearch";
 import { WarehouseViewer } from "@/components/WarehouseViewer";
+import { QRGenerator } from "@/components/QRGenerator";
 import { Pallet, WarehouseStats } from "@/types/warehouse";
 
 const Index = () => {
@@ -284,6 +285,7 @@ const Index = () => {
               pallets={pallets}
               onStartScanner={handleStartScanner}
             />
+            <QRGenerator />
           </div>
 
           {/* Warehouse Viewer */}

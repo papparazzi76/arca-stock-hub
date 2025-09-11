@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      location_qrs: {
+        Row: {
+          created_at: string
+          id: string
+          location: string
+          qr_code: string
+          section: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location: string
+          qr_code: string
+          section: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string
+          qr_code?: string
+          section?: string
+        }
+        Relationships: []
+      }
+      pallet_qrs: {
+        Row: {
+          created_at: string
+          id: string
+          is_used: boolean
+          pallet_id: string | null
+          qr_code: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          pallet_id?: string | null
+          qr_code: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          pallet_id?: string | null
+          qr_code?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       pallets: {
         Row: {
           created_at: string
