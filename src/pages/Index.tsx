@@ -27,9 +27,9 @@ const Index = () => {
 
   // Calculate total warehouse spots
   const calculateTotalSpots = () => {
-    const spotsA = 3 * 4 * 3; // 3 nichos (A1,A2,A3) * 4 niveles * 3 palets 
-    const spotsB = (1 * 4 * 3) + (1 * 4) + (1 * 4 * 3); // B2: 1 nicho * 4 niveles * 3 palets + B3: 1 nicho, 4 bandejas en Nivel 1 + 1 nicho * 4 niveles * 3 palets
-    const spotsC = (5 * 4) + (5 * 3 * 3); // 5 nichos (C1-C5), 4 bandejas en Nivel 1 + 5 nichos * 3 niveles * 3 palets
+    const spotsA = 3 * 5 * 3; // 3 nichos (A1,A2,A3) * 5 niveles * 3 palets 
+    const spotsB = (1 * 5 * 3) + (1 * 5) + (1 * 5 * 3); // B2: 1 nicho * 5 niveles * 3 palets + B3: 1 nicho, 5 bandejas en Nivel 1 + 1 nicho * 5 niveles * 3 palets
+    const spotsC = (5 * 5) + (5 * 4 * 3); // 5 nichos (C1-C5), 5 bandejas en Nivel 1 + 5 nichos * 4 niveles * 3 palets
     const spotsD = 28; // 28 espacios en el suelo
     return spotsA + spotsB + spotsC + spotsD;
   };

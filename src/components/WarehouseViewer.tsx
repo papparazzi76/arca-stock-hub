@@ -46,7 +46,7 @@ export const WarehouseViewer = ({ pallets, filteredPallets }: WarehouseViewerPro
       D: 28 // 28 floor spots
     };
   
-  const levels = 4;
+  const levels = 5;
 
   const renderSection = (sectionKey: string) => {
     if (sectionKey === 'D') {
