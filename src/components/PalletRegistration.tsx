@@ -98,13 +98,24 @@ export const PalletRegistration = ({ onRegister, onStartScanner }: PalletRegistr
 
           <div>
             <Label htmlFor="location">Ubicación (Ej. A2-3-1 o D5):</Label>
-            <Input
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Sección-Nicho-Nivel-Palet"
-              className="mt-1"
-            />
+            <div className="flex space-x-2 mt-1">
+              <Input
+                id="location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="Sección-Nicho-Nivel-Palet"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                onClick={() => onStartScanner('location')}
+                variant="outline"
+                size="icon"
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                <QrCodeIcon className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           <Button

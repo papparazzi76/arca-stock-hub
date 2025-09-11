@@ -227,11 +227,14 @@ const Index = () => {
   };
 
   const handleStartScanner = (inputId: string) => {
+    const isLocationScanner = inputId === 'location';
+    const scanType = isLocationScanner ? 'ubicación' : 'palet';
+    
     // For now, we'll show a message about camera permissions
     // In a full implementation, this would open the camera for QR scanning
     toast({
-      title: "Escáner QR",
-      description: "La funcionalidad del escáner QR requiere permisos de cámara. Por ahora puedes introducir el código manualmente.",
+      title: `Escáner QR de ${scanType}`,
+      description: `Para usar el escáner QR de ${scanType} con la cámara, necesitas usar la app móvil. Por ahora puedes introducir el código manualmente.`,
       variant: "default"
     });
   };
