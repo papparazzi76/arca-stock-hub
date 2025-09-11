@@ -98,9 +98,9 @@ export const WarehouseViewer = ({ pallets, filteredPallets }: WarehouseViewerPro
                    {/* Pallet Spots */}
                    <div className="grid gap-1">
                      {((sectionKey === 'C' || (sectionKey === 'B' && nicheNumber === 3)) && levelNumber === 1) ? (
-                       // Special case: 4 trays for C sections and B3 level 1
+                       // Special case: C sections have 4 trays, B3 has 5 trays for level 1
                        <div className="grid grid-cols-2 gap-1">
-                         {Array.from({ length: 4 }, (_, trayIndex) => {
+                         {Array.from({ length: (sectionKey === 'B' && nicheNumber === 3) ? 5 : 4 }, (_, trayIndex) => {
                            const location = `${sectionKey}${nicheNumber}-${levelNumber}-${trayIndex + 1}`;
                            const palletData = palletsToRender.find(p => p.location === location);
                            return (
