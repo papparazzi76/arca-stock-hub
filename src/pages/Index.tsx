@@ -227,10 +227,11 @@ const Index = () => {
   };
 
   const handleStartScanner = (inputId: string) => {
-    // Since we need Supabase integration for this feature, we'll show a message
+    // For now, we'll show a message about camera permissions
+    // In a full implementation, this would open the camera for QR scanning
     toast({
-      title: "Funcionalidad de backend requerida",
-      description: "Para usar el escáner QR y la funcionalidad completa, necesitas conectar tu proyecto con Supabase.",
+      title: "Escáner QR",
+      description: "La funcionalidad del escáner QR requiere permisos de cámara. Por ahora puedes introducir el código manualmente.",
       variant: "default"
     });
   };
