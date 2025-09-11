@@ -209,20 +209,64 @@ export const QRGenerator = () => {
   // Print QR codes
   const printQRCodes = async (qrCodes: string[], title: string) => {
     try {
+      console.log('Starting QR generation for printing:', qrCodes);
+      
       const printWindow = window.open('', '_blank');
-      if (!printWindow) return;
+      if (!printWindow) {
+        toast({
+          title: "Error",
+          description: "No se pudo abrir la ventana de impresión",
+          variant: "destructive"
+        });
+        return;
+      }
 
       let htmlContent = `
         <html>
           <head>
             <title>${title}</title>
             <style>
-              body { font-family: Arial, sans-serif; margin: 20px; }
-              .qr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-              .qr-item { text-align: center; page-break-inside: avoid; }
-              .qr-item img { max-width: 150px; height: 150px; }
-              .qr-item p { margin: 10px 0; font-weight: bold; }
-              @media print { .qr-grid { grid-template-columns: repeat(2, 1fr); } }
+              body { 
+                font-family: Arial, sans-serif; 
+                margin: 20px; 
+                background: white;
+              }
+              .qr-grid { 
+                display: grid; 
+                grid-template-columns: repeat(3, 1fr); 
+                gap: 20px; 
+                margin-top: 20px;
+              }
+              .qr-item { 
+                text-align: center; 
+                page-break-inside: avoid; 
+                border: 1px solid #ddd;
+                padding: 10px;
+                border-radius: 5px;
+              }
+              .qr-item img { 
+                max-width: 150px; 
+                height: 150px; 
+                margin-bottom: 10px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+              }
+              .qr-item p { 
+                margin: 10px 0; 
+                font-weight: bold; 
+                font-size: 14px;
+                color: #333;
+              }
+              @media print { 
+                .qr-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+                body { margin: 10px; }
+              }
+              h1 {
+                text-align: center;
+                color: #333;
+                margin-bottom: 20px;
+              }
             </style>
           </head>
           <body>
@@ -230,15 +274,43 @@ export const QRGenerator = () => {
             <div class="qr-grid">
       `;
 
-      for (const qrCode of qrCodes) {
-        const qrImageUrl = await QRCode.toDataURL(qrCode, { width: 150 });
-        const location = qrCode.replace('LOC:', '').replace('PALLET:', '');
-        htmlContent += `
-          <div class="qr-item">
-            <img src="${qrImageUrl}" alt="QR Code" />
-            <p>${location}</p>
-          </div>
-        `;
+      // Generate QR codes sequentially to avoid async issues
+      for (let i = 0; i < qrCodes.length; i++) {
+        const qrCode = qrCodes[i];
+        try {
+          console.log(`Generating QR for: ${qrCode}`);
+          
+          const qrImageUrl = await QRCode.toDataURL(qrCode, { 
+            width: 200,
+            margin: 2,
+            color: {
+              dark: '#000000',
+              light: '#FFFFFF'
+            },
+            errorCorrectionLevel: 'M'
+          });
+          
+          console.log(`QR generated successfully for: ${qrCode}`);
+          
+          const location = qrCode.replace('LOC:', '').replace('PALLET:', '');
+          htmlContent += `
+            <div class="qr-item">
+              <img src="${qrImageUrl}" alt="QR Code for ${location}" />
+              <p>${location}</p>
+            </div>
+          `;
+        } catch (qrError) {
+          console.error(`Error generating QR for ${qrCode}:`, qrError);
+          const location = qrCode.replace('LOC:', '').replace('PALLET:', '');
+          htmlContent += `
+            <div class="qr-item">
+              <div style="width: 150px; height: 150px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                <span style="color: #999;">Error generando QR</span>
+              </div>
+              <p>${location}</p>
+            </div>
+          `;
+        }
       }
 
       htmlContent += `
@@ -247,14 +319,20 @@ export const QRGenerator = () => {
         </html>
       `;
 
+      console.log('Writing HTML content to print window');
       printWindow.document.write(htmlContent);
       printWindow.document.close();
-      printWindow.print();
+      
+      // Wait a moment for images to load before printing
+      setTimeout(() => {
+        printWindow.print();
+      }, 1000);
+      
     } catch (error) {
       console.error('Error printing QR codes:', error);
       toast({
         title: "Error",
-        description: "No se pudieron imprimir los códigos QR",
+        description: "No se pudieron generar los códigos QR para imprimir",
         variant: "destructive"
       });
     }
