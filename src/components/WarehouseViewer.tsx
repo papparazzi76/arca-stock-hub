@@ -147,13 +147,22 @@ export const WarehouseViewer = ({ pallets, filteredPallets }: WarehouseViewerPro
         <CardTitle className="text-2xl font-bold text-primary">Visor de Almacén</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
-          {Object.keys(sections).map(sectionKey => (
-            <div key={sectionKey} className="space-y-4">
-              <h3 className="text-center text-xl font-bold text-primary">Sección {sectionKey}</h3>
-              {renderSection(sectionKey)}
-            </div>
-          ))}
+        <div className="space-y-6">
+          {/* First row: Sections A, B, C */}
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+            {['A', 'B', 'C'].map(sectionKey => (
+              <div key={sectionKey} className="space-y-4">
+                <h3 className="text-center text-xl font-bold text-primary">Sección {sectionKey}</h3>
+                {renderSection(sectionKey)}
+              </div>
+            ))}
+          </div>
+          
+          {/* Second row: Section D (full width) */}
+          <div className="space-y-4">
+            <h3 className="text-center text-xl font-bold text-primary">Sección D</h3>
+            {renderSection('D')}
+          </div>
         </div>
       </CardContent>
     </Card>
