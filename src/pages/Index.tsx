@@ -10,6 +10,9 @@ import { PalletSearch } from "@/components/PalletSearch";
 import { WarehouseViewer } from "@/components/WarehouseViewer";
 import { QRGenerator } from "@/components/QRGenerator";
 import { Pallet, WarehouseStats } from "@/types/warehouse";
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType } from '@capacitor/camera';
+import jsQR from 'jsqr';
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -18,6 +21,7 @@ const Index = () => {
   const [pallets, setPallets] = useState<Record<string, Pallet>>({});
   const [locations, setLocations] = useState<Record<string, string>>({});
   const [stats, setStats] = useState<WarehouseStats>({ totalPallets: 0, totalQuantity: 0, emptySpots: 164 });
+  const [currentScanningInput, setCurrentScanningInput] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -226,17 +230,96 @@ const Index = () => {
     });
   };
 
-  const handleStartScanner = (inputId: string) => {
+  const handleStartScanner = async (inputId: string) => {
     const isLocationScanner = inputId === 'location';
     const scanType = isLocationScanner ? 'ubicación' : 'palet';
     
-    // For now, we'll show a message about camera permissions
-    // In a full implementation, this would open the camera for QR scanning
-    toast({
-      title: `Escáner QR de ${scanType}`,
-      description: `Para usar el escáner QR de ${scanType} con la cámara, necesitas usar la app móvil. Por ahora puedes introducir el código manualmente.`,
-      variant: "default"
-    });
+    // Check if running in native app
+    if (!Capacitor.isNativePlatform()) {
+      toast({
+        title: `Escáner QR de ${scanType}`,
+        description: `Para usar el escáner QR de ${scanType} con la cámara, necesitas usar la app móvil. Por ahora puedes introducir el código manualmente.`,
+        variant: "default"
+      });
+      return;
+    }
+
+    try {
+      setCurrentScanningInput(inputId);
+      
+      toast({
+        title: `Escáner QR de ${scanType}`,
+        description: `Preparando cámara para escanear ${scanType}...`,
+        variant: "default"
+      });
+
+      // Take a picture for QR scanning
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl
+      });
+
+      if (image.dataUrl) {
+        // Create an image element to process
+        const img = new Image();
+        img.onload = () => {
+          // Create canvas to get image data
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          
+          if (!context) {
+            toast({
+              title: "Error",
+              description: "No se pudo procesar la imagen",
+              variant: "destructive"
+            });
+            return;
+          }
+
+          canvas.width = img.width;
+          canvas.height = img.height;
+          context.drawImage(img, 0, 0);
+          
+          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          
+          // Use jsQR to decode
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          
+          if (code) {
+            // QR code found, trigger input event
+            const inputElement = document.getElementById(inputId) as HTMLInputElement;
+            if (inputElement) {
+              inputElement.value = code.data;
+              inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            
+            toast({
+              title: "QR escaneado",
+              description: `Código QR de ${scanType} detectado: ${code.data}`,
+              variant: "default"
+            });
+          } else {
+            toast({
+              title: "QR no detectado",
+              description: `No se encontró un código QR válido en la imagen. Intenta de nuevo o introduce el código manualmente.`,
+              variant: "destructive"
+            });
+          }
+        };
+        
+        img.src = image.dataUrl;
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      toast({
+        title: "Error de cámara",
+        description: "No se pudo acceder a la cámara. Verifica los permisos o introduce el código manualmente.",
+        variant: "destructive"
+      });
+    } finally {
+      setCurrentScanningInput(null);
+    }
   };
 
   if (loading) {
