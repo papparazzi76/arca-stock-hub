@@ -1,17 +1,28 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { WarehouseStatsCard } from "@/components/WarehouseStats";
 import { PalletRegistration } from "@/components/PalletRegistration";
 import { PalletSearch } from "@/components/PalletSearch";
 import { WarehouseViewer } from "@/components/WarehouseViewer";
-import { Pallet, WarehouseStats, LastAction } from "@/types/warehouse";
+import { Pallet, WarehouseStats } from "@/types/warehouse";
 
 const Index = () => {
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [pallets, setPallets] = useState<Record<string, Pallet>>({});
   const [locations, setLocations] = useState<Record<string, string>>({});
   const [stats, setStats] = useState<WarehouseStats>({ totalPallets: 0, totalQuantity: 0, emptySpots: 164 });
-  const [lastAction, setLastAction] = useState<LastAction | null>(null);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
 
   // Calculate total warehouse spots
   const calculateTotalSpots = () => {
@@ -32,9 +43,74 @@ const Index = () => {
     });
   };
 
+  // Load pallets from Supabase
+  const loadPallets = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('pallets')
+      .select('*');
+
+    if (error) {
+      console.error('Error loading pallets:', error);
+      toast({
+        title: "Error",
+        description: "Error al cargar los palets del almacén.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const palletsRecord: Record<string, Pallet> = {};
+    const locationsRecord: Record<string, string> = {};
+    
+    data.forEach(pallet => {
+      const palletData: Pallet = {
+        id: pallet.id,
+        qrCode: pallet.qr_code,
+        description: pallet.description,
+        quantity: pallet.quantity,
+        location: pallet.location,
+        createdAt: new Date(pallet.created_at),
+        updatedAt: new Date(pallet.updated_at)
+      };
+      palletsRecord[pallet.qr_code] = palletData;
+      locationsRecord[pallet.location] = pallet.qr_code;
+    });
+
+    setPallets(palletsRecord);
+    setLocations(locationsRecord);
+  };
+
+  useEffect(() => {
+    if (user) {
+      loadPallets();
+    }
+  }, [user]);
+
   useEffect(() => {
     updateStats();
   }, [pallets]);
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const subscription = supabase
+      .channel('pallets-changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'pallets' 
+      }, () => {
+        loadPallets();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [user]);
 
   const validateLocation = (location: string): string | null => {
     if (location.startsWith('D')) {
@@ -80,7 +156,9 @@ const Index = () => {
     return null;
   };
 
-  const handleRegisterPallet = async (palletData: Omit<Pallet, 'id'>) => {
+  const handleRegisterPallet = async (palletData: Omit<Pallet, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!user) return;
+
     // Validation
     const locationError = validateLocation(palletData.location);
     if (locationError) {
@@ -110,20 +188,26 @@ const Index = () => {
       return;
     }
 
-    // Create new pallet with ID
-    const newPallet: Pallet = {
-      ...palletData,
-      id: `pallet_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    // Insert into Supabase
+    const { error } = await supabase
+      .from('pallets')
+      .insert([{
+        user_id: user.id,
+        qr_code: palletData.qrCode,
+        description: palletData.description,
+        quantity: palletData.quantity,
+        location: palletData.location
+      }]);
 
-    // Update state
-    setPallets(prev => ({ ...prev, [newPallet.qrCode]: newPallet }));
-    setLocations(prev => ({ ...prev, [newPallet.location]: newPallet.qrCode }));
-    
-    // Set last action for undo
-    setLastAction({ type: 'register', id: newPallet.id, qrCode: newPallet.qrCode });
+    if (error) {
+      console.error("Error adding pallet:", error);
+      toast({
+        title: "Error",
+        description: "Ocurrió un error al registrar el palet.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     toast({
       title: "Palet registrado",
@@ -140,13 +224,42 @@ const Index = () => {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-arca-blue-light to-arca-blue">
+        <div className="text-white text-xl">Cargando...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-8">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold mb-2">Sistema de Gestión de Almacén</h1>
-          <p className="text-xl opacity-90">Arca Grupo Carranza</p>
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center mb-4">
+            <div></div>
+            <div className="flex items-center gap-4">
+              <span className="text-primary-foreground/90">
+                Bienvenido, {user.email}
+              </span>
+              <Button 
+                onClick={signOut}
+                variant="outline"
+                className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+              >
+                Cerrar Sesión
+              </Button>
+            </div>
+          </div>
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-2">Sistema de Gestión de Almacén</h1>
+            <p className="text-xl opacity-90">Arca Grupo Carranza</p>
+          </div>
         </div>
       </header>
 
