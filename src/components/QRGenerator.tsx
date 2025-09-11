@@ -3,7 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { QrCode, Printer, Download, RefreshCw } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { QrCode, Printer, Download, RefreshCw, Plus, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import QRCode from "qrcode";
@@ -27,6 +30,9 @@ export const QRGenerator = () => {
   const [isGeneratingLocations, setIsGeneratingLocations] = useState(false);
   const [isGeneratingPallet, setIsGeneratingPallet] = useState(false);
   const [selectedLocationQRs, setSelectedLocationQRs] = useState<string[]>([]);
+  const [manualLocation, setManualLocation] = useState("");
+  const [selectedDropdownLocation, setSelectedDropdownLocation] = useState("");
+  const [individualLocations, setIndividualLocations] = useState<string[]>([]);
   const { toast } = useToast();
 
   // Generate all possible warehouse locations
@@ -254,12 +260,60 @@ export const QRGenerator = () => {
     }
   };
 
+  // Add individual location to selection
+  const addIndividualLocation = (location: string) => {
+    const trimmedLocation = location.trim();
+    if (trimmedLocation && !individualLocations.includes(trimmedLocation)) {
+      setIndividualLocations([...individualLocations, trimmedLocation]);
+    }
+  };
+
+  // Remove individual location from selection
+  const removeIndividualLocation = (location: string) => {
+    setIndividualLocations(individualLocations.filter(loc => loc !== location));
+  };
+
+  // Add location from dropdown
+  const addFromDropdown = () => {
+    if (selectedDropdownLocation) {
+      addIndividualLocation(selectedDropdownLocation);
+      setSelectedDropdownLocation("");
+    }
+  };
+
+  // Add location from manual input
+  const addFromManual = () => {
+    if (manualLocation) {
+      addIndividualLocation(manualLocation);
+      setManualLocation("");
+    }
+  };
+
+  // Print individual locations
+  const printIndividualLocations = async () => {
+    const qrCodesToPrint = locationQRs
+      .filter(qr => individualLocations.includes(qr.location))
+      .map(qr => qr.qr_code);
+    
+    if (qrCodesToPrint.length === 0) {
+      toast({
+        title: "Sin ubicaciones",
+        description: "No hay ubicaciones seleccionadas para imprimir",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    await printQRCodes(qrCodesToPrint, "QR de Ubicaciones Seleccionadas");
+  };
+
   // Group location QRs by section
   const groupedLocationQRs = locationQRs.reduce((acc, qr) => {
     if (!acc[qr.section]) acc[qr.section] = [];
     acc[qr.section].push(qr);
     return acc;
   }, {} as Record<string, LocationQR[]>);
+
 
   return (
     <Card className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] transition-[var(--transition-smooth)]">
@@ -306,8 +360,99 @@ export const QRGenerator = () => {
                   ))}
                 </div>
 
+                {/* Individual location selection */}
+                <div className="space-y-4 border-t pt-4">
+                  <h4 className="text-sm font-medium">Seleccionar ubicaciones individuales:</h4>
+                  
+                  {/* Dropdown selection */}
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <Label htmlFor="location-select" className="text-xs text-muted-foreground">
+                        Seleccionar de la lista:
+                      </Label>
+                      <div className="flex gap-2 mt-1">
+                        <Select value={selectedDropdownLocation} onValueChange={setSelectedDropdownLocation}>
+                          <SelectTrigger id="location-select" className="flex-1">
+                            <SelectValue placeholder="Elegir ubicación..." />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-60 bg-background border">
+                            {locationQRs.map(qr => (
+                              <SelectItem key={qr.id} value={qr.location}>
+                                {qr.location} (Sección {qr.section})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={addFromDropdown}
+                          disabled={!selectedDropdownLocation}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Manual input */}
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <Label htmlFor="manual-location" className="text-xs text-muted-foreground">
+                        Escribir manualmente:
+                      </Label>
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          id="manual-location"
+                          placeholder="Ej: A1-2-3, B3-1-4, C2-1-2, D15..."
+                          value={manualLocation}
+                          onChange={(e) => setManualLocation(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && addFromManual()}
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={addFromManual}
+                          disabled={!manualLocation}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Selected locations */}
+                  {individualLocations.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">
+                        Ubicaciones seleccionadas ({individualLocations.length}):
+                      </Label>
+                      <div className="flex flex-wrap gap-1">
+                        {individualLocations.map(location => (
+                          <Badge key={location} variant="secondary" className="flex items-center gap-1">
+                            {location}
+                            <X 
+                              className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                              onClick={() => removeIndividualLocation(location)}
+                            />
+                          </Badge>
+                        ))}
+                      </div>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={printIndividualLocations}
+                        className="w-full"
+                      >
+                        <Printer className="h-4 w-4 mr-2" />
+                        Imprimir Ubicaciones Seleccionadas
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
                 {locationQRs.length > 0 && (
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-2 flex-wrap border-t pt-4">
                     <Button
                       variant="secondary"
                       size="sm"
