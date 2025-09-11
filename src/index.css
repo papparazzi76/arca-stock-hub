@@ -2,39 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Arca Grupo Carranza Design System - All colors MUST be HSL */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Arca Corporate Colors */
+    --arca-dark-blue: 200 20% 28%;  /* #37424A converted to HSL */
+    --arca-orange: 22 77% 52%;      /* #E37222 converted to HSL */
+    --arca-light-gray: 210 12% 91%; /* #e7edf1 converted to HSL */
+    
+    /* Base theme using Arca colors */
+    --background: 240 20% 98%;
+    --foreground: 200 20% 28%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 200 20% 28%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 200 20% 28%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 200 20% 28%;          /* Arca dark blue */
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 210 12% 91%;        /* Arca light gray */
+    --secondary-foreground: 200 20% 28%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 12% 91%;
+    --muted-foreground: 200 15% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 22 77% 52%;            /* Arca orange */
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 210 12% 91%;
+    --input: 210 12% 91%;
+    --ring: 22 77% 52%;
+
+    /* Warehouse specific colors */
+    --warehouse-empty: 210 12% 91%;
+    --warehouse-occupied: 22 77% 52%;
+    --warehouse-border: 200 20% 28%;
+    
+    /* Gradients */
+    --gradient-header: linear-gradient(135deg, hsl(var(--arca-dark-blue)), hsl(200 25% 35%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 12% 96%));
+    
+    /* Shadows */
+    --shadow-card: 0 4px 6px -1px hsl(200 20% 28% / 0.1), 0 2px 4px -2px hsl(200 20% 28% / 0.1);
+    --shadow-hover: 0 10px 15px -3px hsl(200 20% 28% / 0.1), 0 4px 6px -4px hsl(200 20% 28% / 0.1);
+    --shadow-glow: 0 0 20px hsl(22 77% 52% / 0.3);
+    
+    /* Animation */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --radius: 0.5rem;
 
