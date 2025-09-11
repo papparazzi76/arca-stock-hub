@@ -146,9 +146,14 @@ const Index = () => {
         }
       }
 
+      const levelNum = parseInt(level, 10);
+      if (isNaN(levelNum) || levelNum < 1 || levelNum > 5) {
+        return 'El nivel debe ser un número del 1 al 5.';
+      }
+
       if ((section === 'C' || (section === 'B' && niche === '3')) && level === '1') {
         const subLevel = parseInt(palletNumber, 10);
-        const maxTrays = (section === 'B' && niche === '3') ? 5 : 4; // B3 has 5 trays, C sections have 4
+        const maxTrays = (section === 'B' && niche === '3') ? 5 : 5; // Both B3 and C sections have 5 trays in level 1
         if (isNaN(subLevel) || subLevel < 1 || subLevel > maxTrays) {
           return `Para la Sección ${section}, Nicho ${niche}, Nivel 1, el palet debe ser un subnivel entre 1 y ${maxTrays}.`;
         }
