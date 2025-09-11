@@ -26,9 +26,9 @@ const Index = () => {
 
   // Calculate total warehouse spots
   const calculateTotalSpots = () => {
-    const spotsA = (5 * 4) + (5 * 3 * 3); // 5 nichos, 4 bandejas en Nivel 1 + 5 nichos * 3 niveles * 3 palets
-    const spotsB = (1 * 4) + (2 * 4 * 3); // 1 nicho, 4 bandejas en Nivel 1 + 2 nichos * 4 niveles * 3 palets
-    const spotsC = 3 * 4 * 3; // 3 nichos * 4 niveles * 3 palets
+    const spotsA = 3 * 4 * 3; // 3 nichos (A1,A2,A3) * 4 niveles * 3 palets 
+    const spotsB = (1 * 4 * 3) + (1 * 4) + (1 * 4 * 3); // B2: 1 nicho * 4 niveles * 3 palets + B3: 1 nicho, 4 bandejas en Nivel 1 + 1 nicho * 4 niveles * 3 palets
+    const spotsC = (5 * 4) + (5 * 3 * 3); // 5 nichos (C1-C5), 4 bandejas en Nivel 1 + 5 nichos * 3 niveles * 3 palets
     const spotsD = 28; // 28 espacios en el suelo
     return spotsA + spotsB + spotsC + spotsD;
   };
@@ -132,19 +132,23 @@ const Index = () => {
       
       const nicheNum = parseInt(niche, 10);
       if (section === 'A') {
-        if (isNaN(nicheNum) || nicheNum < 1 || nicheNum > 5) {
-          return 'Para la Sección A, el nicho debe ser un número del 1 al 5.';
-        }
-      } else if (section === 'B' || section === 'C') {
         if (isNaN(nicheNum) || nicheNum < 1 || nicheNum > 3) {
-          return `Para la Sección ${section}, el nicho debe ser un número del 1 al 3.`;
+          return 'Para la Sección A, el nicho debe ser un número del 1 al 3.';
+        }
+      } else if (section === 'B') {
+        if (isNaN(nicheNum) || nicheNum < 2 || nicheNum > 3) {
+          return 'Para la Sección B, el nicho debe ser un número del 2 al 3.';
+        }
+      } else if (section === 'C') {
+        if (isNaN(nicheNum) || nicheNum < 1 || nicheNum > 5) {
+          return 'Para la Sección C, el nicho debe ser un número del 1 al 5.';
         }
       }
 
-      if ((section === 'A' || (section === 'B' && niche === '1')) && level === '1') {
+      if ((section === 'C' || (section === 'B' && niche === '3')) && level === '1') {
         const subLevel = parseInt(palletNumber, 10);
         if (isNaN(subLevel) || subLevel < 1 || subLevel > 4) {
-          return 'Para la Sección A, Nivel 1 y la Sección B, Nicho 1, Nivel 1, el palet debe ser un subnivel entre 1 y 4.';
+          return 'Para la Sección C, Nivel 1 y la Sección B, Nicho 3, Nivel 1, el palet debe ser un subnivel entre 1 y 4.';
         }
       } else {
         const palletNum = parseInt(palletNumber, 10);

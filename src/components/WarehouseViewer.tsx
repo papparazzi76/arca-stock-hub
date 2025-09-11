@@ -39,12 +39,12 @@ const PalletSpot = ({ location, palletData, spotLabel }: PalletSpotProps) => {
 export const WarehouseViewer = ({ pallets, filteredPallets }: WarehouseViewerProps) => {
   const palletsToRender = filteredPallets || Object.values(pallets);
   
-  const sections = {
-    A: 5, // 5 nichos
-    B: 3, // 3 nichos  
-    C: 3, // 3 nichos
-    D: 28 // 28 floor spots
-  };
+    const sections = {
+      A: 3, // 3 nichos (A1, A2, A3)
+      B: 2, // 2 nichos (B2, B3)  
+      C: 5, // 5 nichos (C1, C2, C3, C4, C5)
+      D: 28 // 28 floor spots
+    };
   
   const levels = 4;
 
@@ -70,13 +70,20 @@ export const WarehouseViewer = ({ pallets, filteredPallets }: WarehouseViewerPro
 
     return (
       <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${sections[sectionKey as keyof typeof sections]}, 1fr)` }}>
-        {Array.from({ length: sections[sectionKey as keyof typeof sections] }, (_, nicheIndex) => (
-          <div key={`${sectionKey}${nicheIndex + 1}`} 
+        {Array.from({ length: sections[sectionKey as keyof typeof sections] }, (_, nicheIndex) => {
+          // Calculate the actual niche number based on section
+          let nicheNumber = nicheIndex + 1;
+          if (sectionKey === 'B') {
+            nicheNumber = nicheIndex + 2; // B section starts from B2
+          }
+          
+          return (
+          <div key={`${sectionKey}${nicheNumber}`} 
                className="border-2 border-warehouse-border rounded-lg overflow-hidden bg-warehouse-empty
-                         hover:scale-105 transition-[var(--transition-smooth)]">
+                          hover:scale-105 transition-[var(--transition-smooth)]">
             {/* Niche Header */}
             <div className="bg-primary text-primary-foreground p-2 text-center font-bold">
-              {sectionKey}{nicheIndex + 1}
+              {sectionKey}{nicheNumber}
             </div>
             
             {/* Levels */}
@@ -88,47 +95,48 @@ export const WarehouseViewer = ({ pallets, filteredPallets }: WarehouseViewerPro
                     Nivel {levelNumber}
                   </div>
                   
-                  {/* Pallet Spots */}
-                  <div className="grid gap-1">
-                    {((sectionKey === 'A' || (sectionKey === 'B' && nicheIndex === 0)) && levelNumber === 1) ? (
-                      // Special case: 4 trays for A and B1 level 1
-                      <div className="grid grid-cols-2 gap-1">
-                        {Array.from({ length: 4 }, (_, trayIndex) => {
-                          const location = `${sectionKey}${nicheIndex + 1}-${levelNumber}-${trayIndex + 1}`;
-                          const palletData = palletsToRender.find(p => p.location === location);
-                          return (
-                            <PalletSpot
-                              key={location}
-                              location={location}
-                              palletData={palletData}
-                              spotLabel={`B${trayIndex + 1}`}
-                            />
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      // Regular case: 3 pallets per level
-                      <div className="grid grid-cols-3 gap-1">
-                        {Array.from({ length: 3 }, (_, palletIndex) => {
-                          const location = `${sectionKey}${nicheIndex + 1}-${levelNumber}-${palletIndex + 1}`;
-                          const palletData = palletsToRender.find(p => p.location === location);
-                          return (
-                            <PalletSpot
-                              key={location}
-                              location={location}
-                              palletData={palletData}
-                              spotLabel={`P${palletIndex + 1}`}
-                            />
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ))}
+                   {/* Pallet Spots */}
+                   <div className="grid gap-1">
+                     {((sectionKey === 'C' || (sectionKey === 'B' && nicheNumber === 3)) && levelNumber === 1) ? (
+                       // Special case: 4 trays for C sections and B3 level 1
+                       <div className="grid grid-cols-2 gap-1">
+                         {Array.from({ length: 4 }, (_, trayIndex) => {
+                           const location = `${sectionKey}${nicheNumber}-${levelNumber}-${trayIndex + 1}`;
+                           const palletData = palletsToRender.find(p => p.location === location);
+                           return (
+                             <PalletSpot
+                               key={location}
+                               location={location}
+                               palletData={palletData}
+                               spotLabel={`B${trayIndex + 1}`}
+                             />
+                           );
+                         })}
+                       </div>
+                     ) : (
+                       // Regular case: 3 pallets per level
+                       <div className="grid grid-cols-3 gap-1">
+                         {Array.from({ length: 3 }, (_, palletIndex) => {
+                           const location = `${sectionKey}${nicheNumber}-${levelNumber}-${palletIndex + 1}`;
+                           const palletData = palletsToRender.find(p => p.location === location);
+                           return (
+                             <PalletSpot
+                               key={location}
+                               location={location}
+                               palletData={palletData}
+                               spotLabel={`P${palletIndex + 1}`}
+                             />
+                           );
+                         })}
+                       </div>
+                     )}
+                   </div>
+                 </div>
+               );
+             })}
+           </div>
+          )
+        })}
       </div>
     );
   };
